@@ -9,15 +9,16 @@ class Ridge:
         self.alpha = alpha
 
     def fit_normal(self, X_train, y_train):
-        # combine the training data with "1" array
-        X = np.hstack([np.ones((len(X_train), 1)), X_train])
+        # mean centering the data
+        X = X_train-np.mean(X_train,axis = 0)
+        y = y_train-np.mean(y_train,axis = 0)
         # based on the closed form expression, compute the result directly
         self._theta = np.linalg.inv(
-            X.T.dot(X) + self.alpha * np.identity(X.shape[1])).dot(X.T).dot(y_train)
+            X.T.dot(X) + self.alpha * np.identity(X.shape[1])).dot(X.T).dot(y)
 
         # set coeffs to variable
-        self.intercept_ = self._theta[0]
-        self.coef_ = self._theta[1:]
+        self.intercept_ = np.mean(y_train,axis = 0) - np.mean(X_train,axis = 0).dot(self._theta)
+        self.coef_ = self._theta
 
         return self
 
@@ -53,7 +54,10 @@ class Ridge:
             return theta
 
         # deal with data
-        X = np.hstack([np.ones((len(X_train), 1)), X_train])
+        # mean centering the data
+        X = X_train-np.mean(X_train,axis = 0)
+        y = y_train-np.mean(y_train,axis = 0)
+
         initial_theta = np.zeros((X.shape[1], 1))
 
         # fit in gradient_descent
@@ -61,8 +65,8 @@ class Ridge:
             X, y_train, initial_theta, eta, n_iters,)
 
         # set coeffs
-        self.intercept_ = self._theta[0]
-        self.coef_ = self._theta[1:]
+        self.intercept_ = np.mean(y_train,axis = 0) - np.mean(X_train,axis = 0).dot(self._theta)
+        self.coef_ = self._theta
 
         return self
 
@@ -101,13 +105,16 @@ class Ridge:
                 cur_iter += 1
             return theta
 
-        X = np.hstack([np.ones((len(X_train), 1)), X_train])
+        # mean centering the data
+        X = X_train-np.mean(X_train,axis = 0)
+        y = y_train-np.mean(y_train,axis = 0)
+
         initial_theta = np.zeros((X.shape[1], 1))
         self._theta = gradient_descent(
             X, y_train, initial_theta, eta, n_iters,)
 
-        self.intercept_ = self._theta[0]
-        self.coef_ = self._theta[1:]
+        self.intercept_ = np.mean(y_train,axis = 0) - np.mean(X_train,axis = 0).dot(self._theta)
+        self.coef_ = self._theta
 
         return self
 
