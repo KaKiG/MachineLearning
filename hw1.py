@@ -1,6 +1,7 @@
 import numpy as np
 from my_ml.LinearRegression import LinearRegression
-from my_ml.Ridge import Ridge
+import my_ml.Ridge as MR
+from sklearn.linear_model import Ridge
 import matplotlib.pyplot as plt
 
 exp_data = np.loadtxt(fname="expression.txt")
@@ -8,7 +9,6 @@ SNP_data = np.loadtxt(fname="SNPs.txt")
 gene_list = np.loadtxt(fname="gene_list.txt", dtype="str")
 strain_list = np.loadtxt(fname="strain_list.txt", dtype="str")
 
-print("a")
 ###(a)
 coeffs = []
 lin_reg = LinearRegression()
@@ -18,10 +18,6 @@ for i in range(SNP_data.shape[1]):
     coeff = lin_reg.coef_.tolist()
     coeffs.append(coeff[0][0])
 
-x = [i for i in range(1, 1261)]
-plt.scatter(x, coeffs, s=1)
-plt.axis([-100, 1300, -6, 1.7])
-plt.show()
 
 ###(b)
 lin_reg2 = LinearRegression()
@@ -31,21 +27,32 @@ print(lin_reg2.coef_)
 ###(c)
 lin_ridge = Ridge(alpha=0.2)
 coeffs3 = []
-lin_ridge.fit_normal(SNP_data, exp_data[:, 394].reshape(-1, 1))
-coeff3 = lin_ridge.coef_.tolist()
-plt.scatter(x, coeffs3, s=1)
-plt.axis([-100, 1300, -6, 1.7])
-plt.show()
+lin_ridge.fit(SNP_data, exp_data[:,394])
+coeffs3 = lin_ridge.coef_
+print(coeffs3)
+
+coeffs3my =[]
+lin_ridge_my = MR.Ridge(alpha=0.2)
+coeffs3my = []
+lin_ridge_my.fit_normal(SNP_data, exp_data[:,394])
+coeffs3my = lin_ridge_my.coef_
+print(coeffs3my)
+
+
 
 ###(d)
-lin_ridge = Ridge(alpha=200)
+lin_ridge2 = Ridge(alpha=200)
 coeffs4 = []
-lin_ridge.fit_normal(SNP_data, exp_data[:, 394].reshape(-1, 1))
-coeff4 = lin_ridge.coef_.tolist()
-plt.scatter(x, coeffs4, s=0.5)
-plt.axis([-100, 1300, -6, 1.7])
-plt.show()
+lin_ridge2.fit(SNP_data, exp_data[:,394])
+coeffs4 = lin_ridge2.coef_
+print(coeffs4)
 
+coeffs4my =[]
+lin_ridge_my2 = MR.Ridge(alpha=200)
+coeffs4my = []
+lin_ridge_my2.fit_normal(SNP_data, exp_data[:,394])
+coeffs4my = lin_ridge_my2.coef_
+print(coeffs4my)
 ##test-------------------------------------------------------------------------------------------
 # lin_ridge_my = MR.Ridge(0)
 # lin_ridge_sk = Ridge(0)
