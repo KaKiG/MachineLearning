@@ -10,33 +10,35 @@ class Ridge:
 
     def fit_normal(self, X_train, y_train):
         # mean centering the data
-        X = X_train-np.mean(X_train,axis = 0)
-        y = y_train-np.mean(y_train,axis = 0)
+        X = X_train - np.mean(X_train, axis=0)
+        y = y_train - np.mean(y_train, axis=0)
         # based on the closed form expression, compute the result directly
         self._theta = np.linalg.inv(
             X.T.dot(X) + self.alpha * np.identity(X.shape[1])).dot(X.T).dot(y)
 
         # set coeffs to variable
-        self.intercept_ = np.mean(y_train,axis = 0) - np.mean(X_train,axis = 0).dot(self._theta)
+        self.intercept_ = np.mean(y_train, axis=0) - \
+            np.mean(X_train, axis=0).dot(self._theta)
         self.coef_ = self._theta
 
         return self
 
     # gradient descent method
-    def fit_gd(self, X_train, y_train, eta=1e-4, n_iters=1e4):
+    def fit_gd(self, X_train, y_train, eta=1e-4, n_iters=1e5):
         # define the loss function
         def J(theta, X, y):
             try:
-                return np.sum((y - X.dot(theta)) ** 2 + self.alpha * theta.T.dot(theta)) / len(y)
+                return (1. / (2. * X.shape[0])) * \
+                        (np.sum((np.dot(X, theta) - y) ** 2.) + self.alpha * np.dot(theta.T, theta))
             except:
                 return float("inf")
 
         # define the derivative of loss function
         def dJ(theta, X, y):
-            return (X.T.dot(X.dot(theta) - y) * 2.0 + 2.0 * self.alpha * theta) / len(X)
+            return (np.dot(X.T, (X.dot(theta) - y[:, np.newaxis])) + self.alpha * theta) / X.shape[0]
 
         # define the gradient_descent method
-        def gradient_descent(X, y, initial_theta, eta, n_iters=1e4, epsilon=1e-8):
+        def gradient_descent(X, y, initial_theta, eta, n_iters=1e5, epsilon=1e-8):
             theta = initial_theta
             cur_iter = 0
 
@@ -55,36 +57,33 @@ class Ridge:
 
         # deal with data
         # mean centering the data
-        X = X_train-np.mean(X_train,axis = 0)
-        y = y_train-np.mean(y_train,axis = 0)
+        X = X_train - np.mean(X_train, axis=0)
+        y = y_train - np.mean(y_train, axis=0)
+        # X = np.hstack([np.ones((len(X_train), 1)), X_train])
+        # y = y_train
 
         initial_theta = np.zeros((X.shape[1], 1))
 
         # fit in gradient_descent
         self._theta = gradient_descent(
-            X, y_train, initial_theta, eta, n_iters,)
+            X, y, initial_theta, eta, n_iters,)
 
         # set coeffs
-        self.intercept_ = np.mean(y_train,axis = 0) - np.mean(X_train,axis = 0).dot(self._theta)
+        self.intercept_ = np.mean(y_train, axis=0) - \
+            np.mean(X_train, axis=0).dot(self._theta)
         self.coef_ = self._theta
+
+        # self.intercept_ = self._theta[0]
+        # self.coef_ = self._theta[1:]
 
         return self
 
         # stochastic gradient_descent
-
-    def fit_sgd(self, X_train, y_train, eta=1e-4, n_iters=5):
-        # define the loss function
-        def J(theta, X, y):
-            try:
-                return np.sum(
-                    (y - X.dot(theta)) ** 2 + self.alpha * theta.T.dot(theta)
-                ) / len(y)
-            except:
-                return float("inf")
-
+        # lots of bugs needed to be fixed
+    def fit_sgd(self, X_train, y_train, eta = 1e-4, n_iters=10):
         # define the derivative of loss function
         def dJ(theta, X, y):
-            return (X.T.dot(X.dot(theta) - y) * 2.0 + 2.0 * self.alpha * theta) / len(X)
+            return (X * (X.dot(theta) - y) + self.alpha * theta) / len(X)
 
         def gradient_descent(X, y, initial_theta, eta, n_iters=5, epsilon=1e-8):
             theta = initial_theta
@@ -95,25 +94,22 @@ class Ridge:
                 X_new = X[ind]
                 y_new = y[ind]
                 for i in range(len(X)):
-                    gradient = dJ(theta, X_new, y_new)
-                    last_theta = theta
+                    gradient = dJ(theta, X_new[i], y_new[i])
                     theta = theta - eta * gradient
-
-                    if abs(J(last_theta, X, y) - J(theta, X, y)) <= epsilon:
-                        break
 
                 cur_iter += 1
             return theta
 
         # mean centering the data
-        X = X_train-np.mean(X_train,axis = 0)
-        y = y_train-np.mean(y_train,axis = 0)
+        X = X_train - np.mean(X_train, axis=0)
+        y = y_train - np.mean(y_train, axis=0)
 
-        initial_theta = np.zeros((X.shape[1], 1))
+        initial_theta = np.random.randn(X.shape[1])
         self._theta = gradient_descent(
-            X, y_train, initial_theta, eta, n_iters,)
+            X, y, initial_theta, n_iters)
 
-        self.intercept_ = np.mean(y_train,axis = 0) - np.mean(X_train,axis = 0).dot(self._theta)
+        self.intercept_ = np.mean(y_train, axis=0) - \
+            np.mean(X_train, axis=0).dot(self._theta)
         self.coef_ = self._theta
 
         return self

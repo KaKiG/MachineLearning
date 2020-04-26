@@ -64,14 +64,10 @@ class LinearRegression:
     # stochastic gradient_descent
 
     def fit_sgd(self, X_train, y_train, eta=0.01, n_iters=5):
-        def J(theta, X, y):
-            try:
-                return np.sum((y - X.dot(theta)) ** 2) / len(y)
-            except:
-                return float("inf")
 
         def dJ(theta, X, y):
-            return X.T.dot(X.dot(theta) - y) * 2.0 / len(X)
+            return X * (X.dot(theta) - y) * 2.
+
 
         def gradient_descent(X, y, initial_theta, eta, n_iters=1e4, epsilon=1e-8):
 
@@ -83,12 +79,9 @@ class LinearRegression:
                 X_new = X[index]
                 y_new = y[index]
                 for i in range(len(X)):
-                    gradient = dJ(theta, X_new, y_new)
+                    gradient = dJ(theta, X_new[i], y_new[i])
                     last_theta = theta
                     theta = theta - eta * gradient
-
-                    if abs(J(last_theta, X, y) - J(theta, X, y)) <= epsilon:
-                        break
 
                 cur_iter += 1
             return theta
