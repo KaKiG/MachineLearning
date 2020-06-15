@@ -1,9 +1,11 @@
 import numpy as np
+from tqdm import tqdm
 
 # load and preprocess data
-with open("genes.txt", "r") as file:
+with open("data/genes.txt", "r") as file:
     genes = file.readlines()
-expr = np.loadtxt("model.txt")
+
+expr = np.loadtxt("data/model.txt")
 geneDic = {}
 for i in range(len(genes)):
     geneDic[genes[i][:-1]] = i
@@ -15,10 +17,11 @@ orderIndex = []
 for i in range(len(order)):
     orderIndex.append(geneDic[order[i]])
 
-samples = np.zeros((100, 4))
+n_samples = int(1e6)
+samples = np.zeros((n_samples, 4))
 
-# taking 100 samples in this order
-for i in range(100):
+# taking n_samples samples in this order
+for i in tqdm(range(n_samples)):
     for j in range(4):
         if j != 0:
             samples[i, j] = np.random.normal(
@@ -31,8 +34,8 @@ for i in range(100):
 
 # compute mean and variance for ESR1
 mean, variance = np.mean(samples[:, 3]), np.var(samples[:, 3])
-print(mean)
-print(variance)
+print("mean: ", mean)
+print("variance: ", variance)
 
 # ----------------------------------------------------------
 # function for solving linear regression with formula
@@ -52,7 +55,7 @@ def LinearRegression(X_train, y_train):
 
 # compute beta_i for each gene
 beta = []
-for i in range(4):
+for i in tqdm(range(4)):
     y_train = samples[:, i].reshape(-1, 1)
     if i == 0:
         beta_i = 0
